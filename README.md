@@ -2,6 +2,8 @@
 
 An Arduino IDE library for using Telegram Bot API. It's designed to be used with multiple Arduino architectures.
 
+**NOTE: This is a fork of the original "Universal Telegram Bot Library" (from Brian Lough, aka @witnessmenow), that re-implement all the library String() objects data types into fixed size C char arrays, to avoid the irremediable and consequent heap memory fragmentation caused by evils Strings objects and continuous dynamic memory allocation-deallocation.**
+
 Join the [Arduino Telegram Library Group Chat](https://t.me/arduino_telegram_library) if you have any questions/feedback or would just like to be kept up to date with the library's progress.
 
 ## Introduction
