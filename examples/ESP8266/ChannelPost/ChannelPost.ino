@@ -1,9 +1,10 @@
-/******************************************************************
-* An example of bot that echos back any messages received         *
-*                                                                 *
-* written by Giacarlo Bacchio (Gianbacchio on Github)             *
-* adapted by Brian Lough                                          *
-*******************************************************************/
+/*******************************************************************
+ * An example of bot that echos back any messages received,        *
+ * including ones from channels                                    *
+ *                                                                 *
+ * written by Brian Lough                                          *
+ * modified by Jose Rios                                           *
+ *******************************************************************/
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <UniversalTelegramBot.h>
@@ -45,14 +46,22 @@ void setup() {
 }
 
 void loop() {
+  static char msg_to_send[512];
   if (millis() > Bot_lasttime + Bot_mtbs)  {
     int numNewMessages = bot.getUpdates(bot.last_message_received + 1);
 
     while(numNewMessages) {
       Serial.println("got response");
       for (int i=0; i<numNewMessages; i++) {
-        bot.sendMessage(bot.messages[i].chat_id, bot.messages[i].text, "");
+        memset(msg_to_send, '\0', 512);
+        sprintf(msg_to_send, "%s %s", bot.messages[i].chat_title, bot.messages[i].text);
+        if(strcmp(bot.messages[i].type, "channel_post") == 0) {
+          bot.sendMessage(bot.messages[i].chat_id, msg_to_send, "");
+        } else {
+          bot.sendMessage(bot.messages[i].chat_id, bot.messages[i].text, "");
+        }
       }
+
       numNewMessages = bot.getUpdates(bot.last_message_received + 1);
     }
 

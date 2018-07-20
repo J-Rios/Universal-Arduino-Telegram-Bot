@@ -1,9 +1,9 @@
-/*******************************************************************
-*  An example of how to use a bulk messages to subscribed users.   *
-*                                                                  *
-*                                                                  *
-*  written by Vadim Sinitski                                       *
-*  modified by Jose Rios                                           *
+/******************************************************************
+* An example of how to use a bulk messages to subscribed users.   *
+*                                                                 *
+*                                                                 *
+* written by Vadim Sinitski                                       *
+* modified by Jose Rios                                           *
 *******************************************************************/
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
@@ -139,7 +139,7 @@ void handleNewMessages(int numNewMessages) {
 
     from_name = bot.messages[i].from_name;
     if (strcmp(from_name, "") == 0)
-      from_name = (char*)"Guest";
+      from_name = (char*)"Guest\0";
 
     if (strcmp(text, "/start") == 0) {
       if (addSubscribedUser(chat_id, from_name)) {
@@ -207,13 +207,12 @@ void setup() {
   Serial.begin(115200);
 
   if (!SPIFFS.begin()) {
-    Serial.println("Failed to mount file system");
+    Serial.print("\nFailed to mount file system");
     return;
   }
 
   // attempt to connect to Wifi network:
-  Serial.print("Connecting Wifi: ");
-  Serial.println(ssid);
+  Serial.printf("\nConnecting Wifi: %s\n", ssid);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -221,8 +220,7 @@ void setup() {
     delay(500);
   }
 
-  Serial.println("");
-  Serial.println("WiFi connected");
+  Serial.println("\nWiFi connected");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 }
