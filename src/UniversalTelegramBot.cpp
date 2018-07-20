@@ -447,6 +447,10 @@ bool UniversalTelegramBot::processResult(JsonObject &result, int messageIndex) {
     messages[messageIndex].longitude = 0;
     messages[messageIndex].latitude = 0;
 
+    // Uncomment next to see receive json message
+    //if (_debug)
+      //result.printTo(Serial);
+
     if (result.containsKey("message")) {
       JsonObject &message = result["message"];
       strncpy(messages[messageIndex].type, "message", strlen("message")+1);
@@ -499,16 +503,13 @@ bool UniversalTelegramBot::processResult(JsonObject &result, int messageIndex) {
               message["from"]["first_name"].measureLength()+1);
       strncpy(messages[messageIndex].text, message.get<char*>("data"), 
               message["data"].measureLength()+1);
-      strncpy(messages[messageIndex].date, message.get<char*>("date"), 
-              message["date"].measureLength()+1);
-      if (message.containsKey("message")) {  // Is this OK (is expected a "message" key)?
+      if (message.containsKey("message")) {
+        strncpy(messages[messageIndex].date, 
+          message["message"].as<JsonObject>().get<char*>("date"), 
+              message["message"]["date"].measureLength()+1);
         strncpy(messages[messageIndex].chat_id, 
                 message["message"]["chat"].as<JsonObject>().get<char*>("id"), 
                 message["message"]["chat"]["id"].measureLength()+1);
-      }
-      else {
-        strncpy(messages[messageIndex].chat_id, message["chat"].as<JsonObject>().get<char*>("id"), 
-                message["chat"]["id"].measureLength()+1);
       }
       strncpy(messages[messageIndex].chat_title, "", 1);
     } else if (result.containsKey("edited_message")) {
