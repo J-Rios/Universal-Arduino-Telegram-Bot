@@ -66,7 +66,8 @@ char* UniversalTelegramBot::sendGetToTelegram(const char* command) {
 
     char c;
     int ch_count = 0;
-    sprintf(http_get_cmd, "GET /%s", command);
+    snprintf_P(http_get_cmd, 256, "GET /%s", command);
+	http_get_cmd[255] = '\0';
     client->println(http_get_cmd);
     now = millis();
     avail = false;
@@ -117,7 +118,8 @@ char* UniversalTelegramBot::sendPostToTelegram(const char* command,
   }
   if (client->connected()) {
     // POST URI
-    sprintf(http_post_cmd, "POST /%s", command);
+    snprintf_P(http_post_cmd, MAX_CMD_LENGTH, "POST /%s", command);
+	http_post_cmd[MAX_CMD_LENGTH-1] = '\0';
     client->print(http_post_cmd);
     client->println(F(" HTTP/1.1"));
     // Host header
@@ -212,7 +214,7 @@ char* UniversalTelegramBot::sendMultipartFormDataToTelegram(
     char start_request[MAX_MESSAGE_LENGTH] = "";
     char end_request[MAX_MESSAGE_LENGTH] = "";
 
-    sprintf(start_request, "--%s\r\n"
+    snprintf_P(start_request, MAX_MESSAGE_LENGTH, "--%s\r\n"
                            "content-disposition: form-data; name=\"chat_id\"\r\n"
                            "\r\n"
                            "%s\r\n"
@@ -221,10 +223,13 @@ char* UniversalTelegramBot::sendMultipartFormDataToTelegram(
                            "Content-Type: %s\r\n"
                            "\r\n"
                            , boundry, chat_id, boundry, binaryProperyName, fileName, contentType);
+    start_request[MAX_MESSAGE_LENGTH-1] = '\0';
 
-    sprintf(end_request, "\r\n--%s--\r\n", boundry);
+    snprintf_P(end_request, MAX_MESSAGE_LENGTH, "\r\n--%s--\r\n", boundry);
+	end_request[MAX_MESSAGE_LENGTH-1] = '\0';
 
-    sprintf(http_post_cmd, "POST /bot %s /%s", _token, command);
+    snprintf_P(http_post_cmd, MAX_CMD_LENGTH, "POST /bot %s /%s", _token, command);
+	http_post_cmd[MAX_CMD_LENGTH-1] = '\0';
     client->print(http_post_cmd);
     client->println(F(" HTTP/1.1"));
     // Host header
@@ -234,11 +239,13 @@ char* UniversalTelegramBot::sendMultipartFormDataToTelegram(
     client->println(F("Accept: */*"));
 
     int contentLength = fileSize + strlen(start_request) + strlen(end_request);
-    sprintf(to_print, "Content-Length: %d", contentLength);
+    snprintf_P(to_print, MAX_CMD_LENGTH, "Content-Length: %d", contentLength);
+	to_print[MAX_CMD_LENGTH-1] = '\0';
     if (_debug)
       Serial.println(to_print);
     client->println(to_print);
-    sprintf(to_print, "Content-Type: multipart/form-data; boundary=%s", boundry);
+    snprintf_P(to_print, MAX_CMD_LENGTH, "Content-Type: multipart/form-data; boundary=%s", boundry);
+	to_print[MAX_CMD_LENGTH-1] = '\0';
     client->println(to_print);
     client->println("");
 
@@ -328,7 +335,8 @@ char* UniversalTelegramBot::sendMultipartFormDataToTelegram(
 
 bool UniversalTelegramBot::getMe() {
   char command[MAX_CMD_LENGTH]; command[0] = '\0';
-  sprintf(command, "bot%s/getMe", _token);
+  snprintf_P(command, MAX_CMD_LENGTH, "bot%s/getMe", _token);
+  command[MAX_CMD_LENGTH-1] = '\0';
   memset(_msg, '\0', MAX_MESSAGE_LENGTH);
   strncpy(_msg, sendGetToTelegram(command), MAX_MESSAGE_LENGTH); // receive reply from telegram
   _msg[MAX_MESSAGE_LENGTH-1] = '\0';
@@ -360,9 +368,11 @@ int UniversalTelegramBot::getUpdates(long offset) {
   if (_debug)
     Serial.println(F("GET Update Messages"));
 
-  sprintf(command, "bot%s/getUpdates?offset=%ld&limit=%d", _token, offset, HANDLE_MESSAGES);
+  snprintf_P(command, MAX_CMD_LENGTH, "bot%s/getUpdates?offset=%ld&limit=%d", _token, offset, HANDLE_MESSAGES);
+  command[MAX_CMD_LENGTH-1] = '\0';
   if (longPoll > 0) {
-    sprintf(command, "%s%d", command, longPoll);
+    snprintf_P(command, MAX_CMD_LENGTH, "%s%d", command, longPoll);
+	command[MAX_CMD_LENGTH-1] = '\0';
   }
   memset(_msg, '\0', MAX_MESSAGE_LENGTH);
   strncpy(_msg, sendGetToTelegram(command), MAX_CMD_LENGTH); // receive reply from telegram.org
@@ -568,8 +578,9 @@ bool UniversalTelegramBot::sendSimpleMessage(const char* chat_id, const char* te
 
   if (strcmp(text ,"") != 0) {
     while (millis() < sttime + 8000) { // loop for a while to send the message
-      sprintf(command, "bot%s/sendMessage?chat_id=%s&text=%s&parse_mode=%s", _token, chat_id, 
+      snprintf_P(command, MAX_CMD_LENGTH, "bot%s/sendMessage?chat_id=%s&text=%s&parse_mode=%s", _token, chat_id, 
               text, parse_mode);
+	  command[MAX_CMD_LENGTH-1] = '\0';
       memset(_msg, '\0', MAX_MESSAGE_LENGTH);
       strncpy(_msg, sendGetToTelegram(command), MAX_MESSAGE_LENGTH);
       _msg[MAX_MESSAGE_LENGTH-1] = '\0';
@@ -676,7 +687,8 @@ bool UniversalTelegramBot::sendPostMessage(JsonObject &payload) {
   if (payload.containsKey("text")) {
     while (millis() < sttime + 8000) { // loop for a while to send the message
       char command[MAX_CMD_LENGTH]; command[0] = '\0';
-      sprintf(command, "bot%s/sendMessage", _token);
+      snprintf_P(command, MAX_CMD_LENGTH, "bot%s/sendMessage", _token);
+	  command[MAX_CMD_LENGTH-1] = '\0';
       memset(_msg, '\0', MAX_MESSAGE_LENGTH);
       strncpy(_msg, sendPostToTelegram(command, payload), MAX_MESSAGE_LENGTH);
       _msg[MAX_MESSAGE_LENGTH-1] = '\0';
@@ -703,7 +715,8 @@ char* UniversalTelegramBot::sendPostPhoto(JsonObject &payload) {
   if (payload.containsKey("photo")) {
     while (millis() < sttime + 8000) { // loop for a while to send the message
       char command[MAX_CMD_LENGTH]; command[0] = '\0';
-      sprintf(command, "bot%s/sendPhoto", _token);
+      snprintf_P(command, MAX_CMD_LENGTH, "bot%s/sendPhoto", _token);
+	  command[MAX_CMD_LENGTH-1] = '\0';
       strncpy(_msg, sendPostToTelegram(command, payload), MAX_MESSAGE_LENGTH);
       _msg[MAX_MESSAGE_LENGTH-1] = '\0';
       if (_debug)
@@ -798,7 +811,8 @@ bool UniversalTelegramBot::sendChatAction(const char* chat_id, const char* text)
     char command[MAX_CMD_LENGTH]; command[0] = '\0';
     memset(_msg, '\0', MAX_MESSAGE_LENGTH);
     while (millis() < sttime + 8000) { // loop for a while to send the message
-      sprintf(command, "bot%s/sendChatAction?chat_id=%s&action=%s", _token, chat_id, text);
+      snprintf_P(command, MAX_CMD_LENGTH, "bot%s/sendChatAction?chat_id=%s&action=%s", _token, chat_id, text);
+	  command[MAX_CMD_LENGTH-1] = '\0';
       strncpy(_msg, sendGetToTelegram(command), MAX_MESSAGE_LENGTH);
       _msg[MAX_MESSAGE_LENGTH-1] = '\0';
       if (_debug)
